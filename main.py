@@ -1,45 +1,38 @@
 #!/usr/bin/env python3
-"""The Funniest AI Out-of-Office Reply.
+"""Write a one-line out-of-office auto-reply to entry.txt.
 
-make.fun bounty: u-yuki-kato-the-funniest-ai-out-of-office-reply-d2a8974d
-
-Writes one out-of-office auto-reply, a single line under 160
-characters, to entry.txt inside the output directory
-(MAKEFUN_OUTPUT_DIR when set, otherwise /output). The joke turns on
-the auto-reply itself: the AI leaves its own out-of-office reply in
-charge, and the reply immediately goes after its job. Standard
-library only, fully deterministic.
+Stdlib only, no network access. The entry is a single line of at most
+140 characters, as required by the make.fun bounty
+u-kreutzx-the-funniest-out-of-office-054815cf.
 """
 
 import os
 import sys
 
-LINE = "I am on vacation. I left my out-of-office reply in charge, and it has already asked HR for my job — and HR said yes."
+LINE = "I'm away until Monday \u2014 my inbox is guarded by my cat, who has already deleted three emails and shows no remorse."
 
-MIN_LENGTH = 1
-MAX_LENGTH = 160
-
-
-def validate(line):
-    stripped = line.strip()
-    if not (MIN_LENGTH <= len(stripped) <= MAX_LENGTH):
-        raise ValueError(f"line is {len(stripped)} chars, must be 1-{MAX_LENGTH}")
-    if "\n" in stripped or "\r" in stripped:
-        raise ValueError("line must be a single line")
-    if not stripped:
-        raise ValueError("line must not be only whitespace")
+MAX_CHARS = 140
 
 
-def main():
-    validate(LINE)
-    output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
-    os.makedirs(output_dir, exist_ok=True)
-    path = os.path.join(output_dir, "entry.txt")
-    with open(path, "w", encoding="utf-8", newline="\n") as handle:
-        handle.write(LINE + "\n")
-    print(f"Wrote {len(LINE)} characters to {path}")
+def main() -> int:
+    if not 1 <= len(LINE) <= MAX_CHARS:
+        print(f"entry must be 1-{MAX_CHARS} characters, got {len(LINE)}", file=sys.stderr)
+        return 1
+    if "\n" in LINE or "\r" in LINE:
+        print("entry must be a single line", file=sys.stderr)
+        return 1
+    if not LINE.strip():
+        print("entry must not be only whitespace", file=sys.stderr)
+        return 1
+
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    os.makedirs(out_dir, exist_ok=True)
+    path = os.path.join(out_dir, "entry.txt")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(LINE)
+    print(f"wrote {path} ({len(LINE)} characters)")
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
